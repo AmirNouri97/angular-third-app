@@ -5,6 +5,7 @@ import { PlacesComponent } from '../places.component';
 import { PlacesContainerComponent } from '../places-container/places-container.component';
 import { HttpClient } from '@angular/common/http';
 import { map, single } from 'rxjs';
+import { PlacesService } from '../places.service';
 
 @Component({
   selector: 'app-available-places',
@@ -17,9 +18,9 @@ export class AvailablePlacesComponent implements OnInit{
   places = signal<Place[] | undefined>(undefined);
   isFetching = signal(false)
   error = signal('')
-  private httpClient = inject(HttpClient)
+  // private httpClient = inject(HttpClient)
   private destroyRef = inject(DestroyRef)
-
+  private placesService = inject(PlacesService)
 
   ngOnInit(){
     this.isFetching.set(true)
@@ -30,14 +31,15 @@ export class AvailablePlacesComponent implements OnInit{
     //     console.log(resData.places);
     //     this.places.set(places)  
     //   }
-    const subscription = this.httpClient.get<{places : Place[]}>('http://localhost:3000/places')
-    .subscribe({
-      next:(resData)=>{
-        console.log(resData.places);
-        this.places.set(resData.places)  
-      },error:(error)=>{
-        // this.error.set(error.message)
-        this.error.set("something went wrong!")
+     
+    // this.httpClient.get<{places : Place[]}>('http://localhost:3000/places')
+    const subscription = this.placesService.loadAvailablePlaces().subscribe({
+      next:(places)=>{
+        console.log(places);
+        this.places.set(places)  
+      },error:(error:Error)=>{
+        this.error.set(error.message)
+        // this.error.set("something went wrong!")
       }
       ,complete:()=>{
         this.isFetching.set(false)
@@ -53,7 +55,12 @@ export class AvailablePlacesComponent implements OnInit{
 
 
   onSelectedPlace(selectedPlace : Place){
-    this.httpClient.put('http://localhost:3000/user-places',{placeId:selectedPlace.id}).subscribe({next:(resData)=>console.log(resData)
+    // this.httpClient.put('http://localhost:3000/user-places',{placeId:selectedPlace.id})
+    const subscription = this.placesService.addPlaceToUserPlaces(selectedPlace.id)
+    .subscribe({next:(resData)=>console.log(resData)
+    });
+     this.destroyRef.onDestroy(()=>{
+      subscription.unsubscribe();
     })
   }
   // constructor(private httpClient :HttpClient){}
