@@ -15,12 +15,13 @@ import { PlacesService } from '../places.service';
   imports: [PlacesContainerComponent, PlacesComponent],
 })
 export class UserPlacesComponent implements OnInit{
-  places = signal<Place[] | undefined>(undefined);
+  // places = signal<Place[] | undefined>(undefined);
   isFetching = signal(false)
   error = signal('')
   // private httpClient = inject(HttpClient)
   private destroyRef = inject(DestroyRef)
   private placesService = inject(PlacesService)
+  places = this.placesService.loadedUserPlaces;
    ngOnInit(){
       this.isFetching.set(true)
 
@@ -44,10 +45,10 @@ export class UserPlacesComponent implements OnInit{
       // )
       const subscription = this.placesService.loadUserPlaces()
       .subscribe({
-        next:(places)=>{
-          console.log(places);
-          this.places.set(places)  
-        },
+        // next:(places)=>{
+        //   console.log(places);
+        //   this.places.set(places)  
+        // },
         error:(error)=>{
           // this.error.set(error.message)
           this.error.set("something went wrong fetching your favorite places!")

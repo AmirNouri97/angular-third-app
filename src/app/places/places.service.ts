@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 
 import { Place } from './place.model';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, throwError } from 'rxjs';
+import { catchError, map, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -17,13 +17,17 @@ private httpClient = inject(HttpClient)
   }
 
   loadUserPlaces() {
-    return this.fetchPlaces('http://localhost:3000/user-places','sth went wrong fetching the user favorite places!')
+    return this.fetchPlaces('http://localhost:3000/user-places','sth went wrong fetching the user favorite places!').pipe(tap({next:(userPlaces)=>this.userPlaces.set(userPlaces)}))
   }
 
-  addPlaceToUserPlaces(placeId : string) {
-      return this.httpClient.put('http://localhost:3000/user-places',{placeId})
+  // addPlaceToUserPlaces(placeId : string) {
+  //     return this.httpClient.put('http://localhost:3000/user-places',{placeId})
+  // }
+//با مدلی که به جای ایدی کل ارایه رو میگیره جایگزین میکمنیم
+ addPlaceToUserPlaces(place : Place) {
+  this.userPlaces.update(prevPlaces=>[...prevPlaces,place])
+      return this.httpClient.put('http://localhost:3000/user-places',{placeId:place.id})
   }
-
   removeUserPlace(place: Place) {}
 
   private fetchPlaces(url:string,errorMessage:string){
